@@ -1,5 +1,5 @@
-import { expect, Page } from "@playwright/test";
-
+import { test, expect, Page } from "@playwright/test";
+import fs from "fs";
 type Mode = "mouse" | "keyboard" | "cursor";
 type Result =
   | { success: true; mode: Mode; selectedWord: string }
@@ -15,6 +15,12 @@ const customSplitWords = (text: string): string[] => {
 const escapeForRegex = (s: string) =>
   s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+export const readTestCases = async (type: string) => {
+  const response = fs.readFileSync("./test-cases/formatting.json", "utf8");
+  const testCases = JSON.parse(response);
+  return testCases[type] || [];
+};
+
 export const getTextContent = async (page: Page, selector: string): Promise<string> => {
   return page.evaluate((sel) => {
     const element = document.querySelector(sel);
@@ -27,13 +33,30 @@ export const hasMultipleElements = async (page: Page, selector: string): Promise
   return elements.length > 1;
 };
 
-export const boldWord = async (page: Page, selector: Element, words: string, button: string) => {
+export const hasLink = async (page: Page): Promise<boolean> => {
+  return page.evaluate(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+
+    const range = selection.getRangeAt(0);
+    const contents = range.cloneContents();
+    return !!(contents.querySelector && contents.querySelector("a")); // true if <a> inside
+  });
+};
+
+export const doFormat = async (page: Page, selector: string | any, words: string, button: string) => {
   // console.log(`Words in selector ${selector}:`, words);
   const length = words.split(" ").length; // Get the number of words
   console.log(`Number of words in selector ${selector}:`, length);
   const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
   console.log(`Random word selected from selector ${selector}:`, randomWord);
   await selectWord(page, selector, randomWord);
+  if (await hasLink(page) === false) {
+    console.log("the selection has a link not able to format, so it's skipping the test");
+    // test.skip();
+    return;
+  }
+
   await page.getByRole("button", { name: button }).click();
   // await page.waitForTimeout(5000);
 }

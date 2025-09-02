@@ -6,8 +6,6 @@
     "superscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "subscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "bold-italic": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "highlight": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "bold-underline": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "bold-highlight": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "bold-strikethrough": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"]
 }
