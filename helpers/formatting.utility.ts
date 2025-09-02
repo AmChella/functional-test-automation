@@ -15,6 +15,79 @@ const customSplitWords = (text: string): string[] => {
 const escapeForRegex = (s: string) =>
   s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+export const runTest = async (testCases: string[], page: Page, button: string, linkType: string = "web-link") => {
+  for (const selector of testCases) {
+    const elements = page.locator(selector);
+    const count = await elements.count();
+
+      console.log(`Selector: ${selector}, found ${count} element(s)`);
+
+      for (let i = 0; i < count; i++) {
+        const element = elements.nth(i);
+        const text = await element.textContent();
+        if (button === "Add Link") {
+          await addLink(page, element, text || "", button, linkType);
+        } else {
+          await doFormat(page, element, text || "", button);
+        }
+      }
+    }
+};
+
+const addLink = async (page: Page, element: any, words: string, button: string, linkType: string) => {
+  if (linkType === "web-link") {
+    await addLinkWeb(page, element, words, button);
+  } else {
+    await addLinkDatabase(page, element, words, button);
+  }
+};
+
+const addLinkDatabase = async (page: Page, element: any, words: string, button: string) => {
+  const length = words.split(" ").length; // Get the number of words
+  console.log(`Number of words in selector ${element}:`, length);
+  const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
+  console.log(`Random word selected from selector ${element}:`, randomWord);
+  await selectWord(page, element, randomWord);
+  await page.waitForTimeout(500);
+  await page.getByRole("button", { name: "Add Link" }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole("dialog").locator("path").waitFor({
+    state: "visible",
+  });
+  await page.locator('.select__input-container').click();
+  await page.locator('#react-select-3-input').fill('database url');
+  await page.locator('#react-select-3-input').press('Enter');
+  await page.locator('.select__control.css-13cymwt-control > .select__value-container > .select__input-container').click();
+  await page.locator('#react-select-5-input').fill('agi');
+  await page.locator('#react-select-5-input').press('Enter');
+  await page.getByRole('textbox', { name: 'Database Number:' }).click();
+  await page.getByRole('textbox', { name: 'Database Number:' }).fill('database url test');
+  await page.getByRole('contentinfo').getByRole('button', { name: 'Insert' }).click();
+};
+
+export const addLinkWeb = async (page: Page, element: any, words: string, button: string) => {
+  const length = words.split(" ").length; // Get the number of words
+  console.log(`Number of words in selector ${element}:`, length);
+  const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
+  console.log(`Random word selected from selector ${element}:`, randomWord);
+  await selectWord(page, element, randomWord);
+  await page.waitForTimeout(500);
+  await page.getByRole("button", { name: "Add Link" }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole("dialog").locator("path").waitFor({
+    state: "visible"
+  });
+  await page.getByRole("dialog").locator("path").click();
+  await page.getByRole("option", { name: "Web URL" }).click();
+  await page.getByRole("textbox", { name: "URL:" }).click();
+  await page.getByRole("textbox", { name: "URL:" }).fill("https://google.com");
+  await page.getByRole("textbox", { name: "URL:" }).click();
+  await page
+    .getByRole("contentinfo")
+    .getByRole("button", { name: "Insert" })
+    .click();
+}
+
 export const readTestCases = async (type: string) => {
   const response = fs.readFileSync("./test-cases/formatting.json", "utf8");
   const testCases = JSON.parse(response);
@@ -34,13 +107,24 @@ export const hasMultipleElements = async (page: Page, selector: string): Promise
 };
 
 export const hasLink = async (page: Page): Promise<boolean> => {
-  return page.evaluate(() => {
+  return await page.evaluate(() => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return false;
 
     const range = selection.getRangeAt(0);
     const contents = range.cloneContents();
-    return !!(contents.querySelector && contents.querySelector("a")); // true if <a> inside
+    // Check for <a> tags in the cloned contents or in the common ancestor
+    if (contents.querySelector && contents.querySelector("a")) {
+      return true;
+    }
+    // Fallback: check if the selection itself is inside a link
+    const ancestor = range.commonAncestorContainer;
+    let node = ancestor.nodeType === 1 ? ancestor : ancestor.parentElement;
+    while (node) {
+      if (node.nodeName && node.nodeName.toLowerCase() === "a") return true;
+      node = node.parentElement;
+    }
+    return false;
   });
 };
 
@@ -51,14 +135,12 @@ export const doFormat = async (page: Page, selector: string | any, words: string
   const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
   console.log(`Random word selected from selector ${selector}:`, randomWord);
   await selectWord(page, selector, randomWord);
-  if (await hasLink(page) === false) {
-    console.log("the selection has a link not able to format, so it's skipping the test");
-    // test.skip();
-    return;
+  await page.waitForTimeout(500);
+  if (await page.getByRole("button", { name: button }).isVisible()) {
+    await page.getByRole("button", { name: button }).click();
+  } else {
+    console.log("Button not visible");
   }
-
-  await page.getByRole("button", { name: button }).click();
-  // await page.waitForTimeout(5000);
 }
 
 export const selectWord = async (

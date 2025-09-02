@@ -1,11 +1,11 @@
 {
     "bold": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "italic": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "underline": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
+    "link": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "strikethrough": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "superscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "subscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "bold-italic": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "bold-underline": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
+    "bold-link": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
     "bold-strikethrough": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"]
 }
