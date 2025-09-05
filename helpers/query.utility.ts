@@ -1,3 +1,5 @@
+import logger from "./logger";
+
 export const hasPendingQueries = async (page) => {
   const selector =
     "main > div > div:nth-child(1) > div.flex.items-center.justify-between.text-lg.font-semibold.pb-2 > h1 span";
@@ -12,13 +14,13 @@ export const hasPendingQueries = async (page) => {
 };
 
 export const getListOfQueryElements = async (page, test) => {
-  console.log("Checking for pending queries...");
+  logger.info("Checking for pending queries...");
   if ((await hasPendingQueries(page)) === false) {
-    console.log("No pending queries found.");
+    logger.warn("No pending queries found.");
     test.skip();
   }
 
-  console.log("Pending queries found.");
+  logger.success("Pending queries found.");
 
   const selector = "div.box-content";
   await page.waitForSelector(selector, { timeout: 5000 });

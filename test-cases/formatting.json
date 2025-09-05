@@ -1,11 +1,63 @@
 {
-    "bold": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "italic": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "link": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "strikethrough": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "superscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "subscript": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "bold-italic": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "bold-link": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"],
-    "bold-strikethrough": ["div[data-node-type='article-title']", "div[data-node-type='paragraph']"]
+    "output_verification": true,
+    "skip": false,
+    "role": ["editor"],
+    "selectors": [
+        "div[data-node-type='article-title']",
+        "div[data-node-type='paragraph']"
+    ],
+    "bold": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "italic": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "link": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "strikethrough": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "superscript": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "subscript": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "bold-italic": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "bold-link": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    },
+    "bold-strikethrough": {
+        "$ref": "#/selectors",
+        "output_verification": true,
+        "skip": false,
+        "role": ["editor"]
+    }
 }

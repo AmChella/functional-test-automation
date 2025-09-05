@@ -1,5 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 import fs from "fs";
+import logger, { colorize } from "./logger";
 type Mode = "mouse" | "keyboard" | "cursor";
 type Result =
   | { success: true; mode: Mode; selectedWord: string }
@@ -15,24 +16,16 @@ const customSplitWords = (text: string): string[] => {
 const escapeForRegex = (s: string) =>
   s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-export const runTest = async (testCases: string[], page: Page, button: string, linkType: string = "web-link") => {
-  for (const selector of testCases) {
-    const elements = page.locator(selector);
-    const count = await elements.count();
+export const runTest = async (element: object, text: string, page: Page, button: string, linkType: string = "web-link") => {
+  if (button === "Add Link") {
+    await addLink(page, element, text || "", button, linkType);
+    logger.success(`Link added via ${linkType} for element ${element.toString()}`);
+  } else {
+    await doFormat(page, element, text || "", button);
+    logger.success(`${button} applied for element ${element.toString()}`);
+  }
+}
 
-      console.log(`Selector: ${selector}, found ${count} element(s)`);
-
-      for (let i = 0; i < count; i++) {
-        const element = elements.nth(i);
-        const text = await element.textContent();
-        if (button === "Add Link") {
-          await addLink(page, element, text || "", button, linkType);
-        } else {
-          await doFormat(page, element, text || "", button);
-        }
-      }
-    }
-};
 
 const addLink = async (page: Page, element: any, words: string, button: string, linkType: string) => {
   if (linkType === "web-link") {
@@ -44,9 +37,9 @@ const addLink = async (page: Page, element: any, words: string, button: string, 
 
 const addLinkDatabase = async (page: Page, element: any, words: string, button: string) => {
   const length = words.split(" ").length; // Get the number of words
-  console.log(`Number of words in selector ${element}:`, length);
+  logger.info(`DB Link: candidate words count=${length}`);
   const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
-  console.log(`Random word selected from selector ${element}:`, randomWord);
+  logger.step(`DB Link: selecting word '${colorize(randomWord, { fg: "brightYellow" })}'`);
   await selectWord(page, element, randomWord);
   await page.waitForTimeout(500);
   await page.getByRole("button", { name: "Add Link" }).click();
@@ -67,13 +60,12 @@ const addLinkDatabase = async (page: Page, element: any, words: string, button: 
 
 export const addLinkWeb = async (page: Page, element: any, words: string, button: string) => {
   const length = words.split(" ").length; // Get the number of words
-  console.log(`Number of words in selector ${element}:`, length);
+  logger.info(`Web Link: candidate words count=${length}`);
   const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
-  console.log(`Random word selected from selector ${element}:`, randomWord);
+  logger.step(`Web Link: selecting word '${colorize(randomWord, { fg: "brightYellow" })}'`);
   await selectWord(page, element, randomWord);
   await page.waitForTimeout(500);
   await page.getByRole("button", { name: "Add Link" }).click();
-  await page.waitForTimeout(500);
   await page.getByRole("dialog").locator("path").waitFor({
     state: "visible"
   });
@@ -86,12 +78,19 @@ export const addLinkWeb = async (page: Page, element: any, words: string, button
     .getByRole("contentinfo")
     .getByRole("button", { name: "Insert" })
     .click();
+  logger.success("Web link inserted");
 }
 
 export const readTestCases = async (type: string) => {
   const response = fs.readFileSync("./test-cases/formatting.json", "utf8");
-  const testCases = JSON.parse(response);
-  return testCases[type] || [];
+  const parsedJson = JSON.parse(response);
+  const testCaseConfig = parsedJson[type];
+
+  if (testCaseConfig && typeof testCaseConfig === 'object' && testCaseConfig.$ref === '#/selectors') {
+    return parsedJson.selectors || [];
+  }
+
+  return testCaseConfig || [];
 };
 
 export const getTextContent = async (page: Page, selector: string): Promise<string> => {
@@ -131,15 +130,16 @@ export const hasLink = async (page: Page): Promise<boolean> => {
 export const doFormat = async (page: Page, selector: string | any, words: string, button: string) => {
   // console.log(`Words in selector ${selector}:`, words);
   const length = words.split(" ").length; // Get the number of words
-  console.log(`Number of words in selector ${selector}:`, length);
+  logger.info(`Format '${button}': candidate words count=${length}`);
   const randomWord = words.split(" ")[Math.floor(Math.random() * length)];
-  console.log(`Random word selected from selector ${selector}:`, randomWord);
+  logger.step(`Format '${button}': selecting word '${colorize(randomWord, { fg: "brightYellow" })}'`);
   await selectWord(page, selector, randomWord);
   await page.waitForTimeout(500);
   if (await page.getByRole("button", { name: button }).isVisible()) {
     await page.getByRole("button", { name: button }).click();
+    logger.success(`Clicked '${button}' button`);
   } else {
-    console.log("Button not visible");
+    logger.warn(`Button '${button}' not visible`);
   }
 }
 

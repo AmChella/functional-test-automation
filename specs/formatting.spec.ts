@@ -1,19 +1,25 @@
 import { test, expect, selectors, chromium } from "@playwright/test";
+import logger from "../helpers/logger";
 test.setTimeout(120_000);
-import fs from "fs";
 import * as utility from "../helpers/formatting.utility";
-const articleUrl = "http://192.168.31.230:4000/article/50jp6dei5h2zxsw";
+import {runTest} from "./runner";
+
+
+const articleUrl = "http://localhost:4000/article/3xrylma75cnlj76";
 let browser;
 let context;
 let page;
+const feature = "formatting";
 
 test.beforeAll(async () => {
+  logger.banner("Formatting Suite - setup", { fg: "brightWhite", bg: "bgBlue", bold: true });
   browser = await chromium.launch();
   context = await browser.newContext();
   page = await context.newPage();
   await page.goto(articleUrl, { waitUntil: "load" });
   await page.getByRole("button", { name: "Accept All Cookies" }).click();
   await page.getByRole("button", { name: "Skip Onboarding" }).click();
+  logger.success("Setup complete");
 });
 
 test.afterAll(async () => {
@@ -26,41 +32,48 @@ test.afterAll(async () => {
   if (browser) {
     await browser.close();
   }
+  logger.banner("Formatting Suite - teardown", { fg: "brightWhite", bg: "bgBlue", bold: true });
 });
 
 test("should bold format apply correctly", async () => {
+  logger.section("BOLD TEST");
   const boldTestCases = await utility.readTestCases("bold");
-  await utility.runTest(boldTestCases, page, "Bold");
+  await runTest(boldTestCases, page, "Bold", feature);
   await page.waitForTimeout(1000);
 });
 
 test("should italic format apply correctly", async () => {
+  logger.section("ITALIC TEST");
   const italicTestCases = await utility.readTestCases("italic");
-  await utility.runTest(italicTestCases, page, "Italic");
+  await runTest(italicTestCases, page, "Italic", feature);
   await page.waitForTimeout(1000);
 });
 
 test("should superscript format apply correctly", async () => {
+  logger.section("SUPERSCRIPT TEST");
   const superscriptTestCases = await utility.readTestCases("superscript");
-  await utility.runTest(superscriptTestCases, page, "Superscript");
+  await runTest(superscriptTestCases, page, "Superscript", feature);
   await page.waitForTimeout(1000);
 });
 
 test("should subscript format apply correctly", async () => {
+  logger.section("SUBSCRIPT TEST");
   const subscriptTestCases = await utility.readTestCases("subscript");
-  await utility.runTest(subscriptTestCases, page, "Subscript");
+  await runTest(subscriptTestCases, page, "Subscript", feature);
   await page.waitForTimeout(1000);
 });
 
 test("should apply web link to the selection correctly", async () => {
+  logger.section("ADD WEB LINK TEST");
   const linkTestCases = await utility.readTestCases("link");
-  await utility.runTest(linkTestCases, page, "Add Link", "web-link");
+  await runTest(linkTestCases, page, "Add Link", feature, "web-link");
   await page.waitForTimeout(1000);
 });
 
 test("should apply database link to the selection correctly", async () => {
+  logger.section("ADD DATABASE LINK TEST");
   const linkTestCases = await utility.readTestCases("link");
-  await utility.runTest(linkTestCases, page, "Add Link", "database");
+  await runTest(linkTestCases, page, "Add Link", feature, "database");
   await page.waitForTimeout(1000);
 });
 
